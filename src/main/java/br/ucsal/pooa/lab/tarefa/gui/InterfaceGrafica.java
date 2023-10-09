@@ -4,9 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Vector;
 
-import jakarta.swing.JButton;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -84,11 +85,23 @@ public class InterfaceGrafica extends JFrame {
 
 				dados.clear();
 
-				for (Linha tarefa : listaTarefas.getTarefas()) {
+				for (Object obj : listaTarefas.getTarefas()) {
 					Vector<String> linha = new Vector<String>();
-					linha.add(tarefa.coluna1());
-					linha.add(tarefa.coluna2());
-					linha.add(tarefa.coluna3());
+					
+					// Lista dos nomes dos métodos que queremos invocar
+					String[] methodNames = {"coluna1", "coluna2", "coluna3"};
+					
+					for (String methodName : methodNames) {
+						try {
+							// Obtendo o método pelo nome e invocando-o
+							Method method = obj.getClass().getMethod(methodName);
+							String result = (String) method.invoke(obj);
+							linha.add(result);
+						} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+							ex.printStackTrace();
+						}
+						
+					}
 					dados.add(linha);
 				}
 				tabela.setModel(new DefaultTableModel(dados, colunas));
