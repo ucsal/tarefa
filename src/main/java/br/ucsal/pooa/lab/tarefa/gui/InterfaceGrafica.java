@@ -4,6 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -18,6 +24,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import br.ucsal.pooa.lab.tarefa.Lista;
+import br.ucsal.pooa.lab.tarefa.anotacao.Coluna;
 
 
 public class InterfaceGrafica extends JFrame {
@@ -83,14 +90,49 @@ public class InterfaceGrafica extends JFrame {
 
 				dados.clear();
 
-				for (Linha tarefa : listaTarefas.getTarefas()) {
+				// Lista para armazenar os nomes das colunas
+   				List<String> colunasList = new ArrayList<>();
+
+				TreeMap<Integer, String> orderedResults = new TreeMap<>();
+    			TreeMap<Integer, String> orderedColumns = new TreeMap<>();
+
+				System.out.println(listaTarefas.getTarefas().size());
+			    for (Object obj : listaTarefas.getTarefas()) {
 					Vector<String> linha = new Vector<String>();
-					linha.add(tarefa.coluna1());
-					linha.add(tarefa.coluna2());
-					linha.add(tarefa.coluna3());
+					Method[] methods = obj.getClass().getDeclaredMethods();
+					//List methods and filter the ones with @Coluna annotation
+					Arrays.stream(methods).filter( m -> m.isAnnotationPresent(Coluna.class)).toList();
+
+        
+					for (Method method : methods) {
+						if (method.isAnnotationPresent(Coluna.class)) {
+							try {
+								Coluna coluna = method.getAnnotation(Coluna.class);
+								// Adicionando o nome da coluna à lista
+								orderedColumns.put(coluna.posicao(), coluna.texto());
+								String result = (String) method.invoke(obj);
+								orderedResults.put(coluna.posicao(), result);
+							} catch (IllegalAccessException | InvocationTargetException ex) {
+								ex.printStackTrace();
+							}
+						}
+					}
+					// Adicionando os resultados ordenados ao vetor linha
+					for (String result : orderedResults.values()) {
+						linha.add(result);
+					}		
 					dados.add(linha);
 				}
-				tabela.setModel(new DefaultTableModel(dados, colunas));
+
+				// Convertendo o TreeMap para uma lista
+				for (String columnName : orderedColumns.values()) {
+					colunasList.add(columnName);
+				}
+					
+				// Convertendo a lista de colunas em um vetor para usar no DefaultTableModel
+				Vector<String> colunasVector = new Vector<>(colunasList);
+
+				tabela.setModel( new DefaultTableModel( dados , colunasVector ) );
 
 			}
 		});

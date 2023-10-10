@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 
+import br.ucsal.pooa.lab.tarefa.anotacao.Coluna;
+
 public class TarefaPrazo extends Tarefa {
 
 	
@@ -30,6 +32,20 @@ public class TarefaPrazo extends Tarefa {
 		return super.toString()+" TarefaPrazo [data=" + data.format(formatter) + "]";
 	}
 	
+
+	@Coluna(texto = "TITULO", posicao = 1)
+	public String getTitulo() {
+		return super.getTitulo();
+	}
+
+
+	@Coluna(texto = "DESCRICAO", posicao = 2)
+	public String getDescricao() {
+		return super.getDescricao();
+	}
+
+
+	@Coluna(texto = "STATUS", posicao = 3)
 	@Override
 	public String coluna3() {
 		return this.data.format(formatter);
